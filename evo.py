@@ -137,6 +137,53 @@ def render(img, shapes):
         return renderFromPolygones(img, shapes)
 
 
+# https://stackoverflow.com/a/44659589
+def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
+    # initialize the dimensions of the image to be resized and
+    # grab the image size
+    dim = None
+    (h, w) = image.shape[:2]
+
+    # if both the width and height are None, then return the
+    # original image
+    if width is None and height is None:
+        return image
+
+    # check to see if the width is None
+    if width is None:
+        # calculate the ratio of the height and construct the
+        # dimensions
+        r = height / float(h)
+        dim = (int(w * r), height)
+
+    # otherwise, the height is None
+    else:
+        # calculate the ratio of the width and construct the
+        # dimensions
+        r = width / float(w)
+        dim = (width, int(h * r))
+
+    # resize the image
+    resized = cv2.resize(image, dim, interpolation=inter)
+
+    # return the resized image
+    return resized
+
+
+def processShapes(shapes, height, width):
+    global originalHeight, originalWidth
+    newShapes = copy.deepcopy(shapes)
+    for shape in newShapes:
+        if circleMode:
+            shape[0] = (int(shape[0][0]*originalHeight/height),
+                        int(shape[0][1]*originalWidth/width))
+        else:
+            for point in shape[0]:
+                point[0] = int(point[0]*originalHeight/height)
+                point[1] = int(point[1]*originalWidth/width)
+    return newShapes
+
+
 # makes shape depending on mode
 def randomShape():
     if circleMode:
@@ -150,8 +197,8 @@ def randomShape():
 
 
 # returns empty white canvas
-def emptyImage():
-    return numpy.ones((height, width, 3), numpy.uint8)*255
+def emptyImage(h=height, w=width):
+    return numpy.ones((h, w, 3), numpy.uint8)*255
 
 
 # comparing images using Mean Square Error
@@ -167,8 +214,11 @@ def mse(imageA, imageB):
 # and an array of new genes
 # where each gene has [[shapes], generationNumber, mse]
 class Population:
-    currentImage = emptyImage()
+    currentImage = None
+    currentHQImage = None
     currentImageshapes = []
+    emptyHQImage = None
+    emptyImage = None
 
     # constructor with either empty genes or provided genes
     def __init__(self, newImages):
@@ -195,11 +245,15 @@ class Population:
                 self.currentImageshapes = self.currentImageshapes[newShapesPerIteration:]
             # redrawing image from scratch
             self.currentImage = render(
-                emptyImage(), self.currentImageshapes)
+                self.emptyImage, self.currentImageshapes)
+            # self.currentHQImage = render(self.emptyHQImage, processShapes(
+            #     self.currentImageshapes, self.currentHQImage.shape[0], self.currentHQImage.shape[1]))
             # adding new generation to current
             newBestImage = render(
                 self.currentImage, bestFitnessImage[0])
             self.currentImage = newBestImage
+            self.currentHQImage = render(self.currentHQImage, processShapes(
+                bestFitnessImage[0], self.currentImage.shape[0],  self.currentImage.shape[1]))
         return self.currentImage
 
     # creating new genes
@@ -283,6 +337,9 @@ inputImage = cv2.imread(imagePath)
 # resizing or keeping size dependinng on arguments
 if not resizeImage:
     print("Not resizing")
+    originalHeight = inputImage.shape[0]
+    originalWidth = inputImage.shape[1]
+    inputImage = image_resize(inputImage, height=512)
     height = inputImage.shape[0]
     width = inputImage.shape[1]
     # for circles
@@ -301,12 +358,18 @@ else:
         print("Image is not 512x512, resizing...")
         inputImage = cv2.resize(
             inputImage, (512, 512), interpolation=cv2.INTER_AREA)
+        originalHeight = height
+        originalWidth = width
 
 
 # first generation
 currentGenId = 0
 mainTime = time.time()
 population = Population([])
+population.currentImage = emptyImage(h=height, w=width)
+population.emptyImage = emptyImage(h=height, w=width)
+population.currentHQImage = emptyImage(h=originalHeight, w=originalWidth)
+population.emptyHQImage = emptyImage(h=originalHeight, w=originalWidth)
 population.mutate(None)
 
 # iterating
@@ -314,7 +377,7 @@ for i in range(iterationsGlobal):
     currentGenId += 1
     print("#", i, end=" ", sep='')
     population = population.newGeneration()
-    img = population.currentImage
+    img = population.currentHQImage
     cv2.imwrite(imagePath.split('.')[0]+modeName +
                 "Result"+'.'+imagePath.split('.')[1], img)  # saving image each iteration
     if timelapseFlag:
