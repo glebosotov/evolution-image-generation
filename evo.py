@@ -17,6 +17,8 @@ import argh
 height = 512
 width = 512
 resizeImage = True
+shrink = False
+shrinkPixels = 256
 
 # evo weights
 population_size = 512
@@ -293,8 +295,9 @@ timelapseDirPath = None
 @argh.arg('--iterations', help='optional')
 @argh.arg('--population', help='optional')
 @argh.arg('--keepsize', '-s', help="keep original resolution")
+@argh.arg('--fast', '-f', help="faster, worse quality")
 @argh.arg('--timelapse', '-t', help="making a timelapse in mp4 format at the end, ffmpeg required")
-def collectArgs(imageName, brush, keepsize=False, iterations=5000, timelapse=False, population=512):
+def collectArgs(imageName, brush, keepsize=False, iterations=5000, timelapse=False, population=512, fast=False):
     """Use either .jpg or .png images with resolution of 512x512"""
     global timelapseFlag
     global modeName
@@ -307,11 +310,13 @@ def collectArgs(imageName, brush, keepsize=False, iterations=5000, timelapse=Fal
     global polygonMode
     global population_size
     global resizeImage
+    global shrink
     timelapseFlag = timelapse  # dumping all images for timelapse
     imagePath = imageName
     population_size = population
     modeName = brush
     resizeImage = not keepsize
+    shrink = fast
     if brush == 'c':
         circleMode = True
     elif brush == 't':
@@ -340,7 +345,8 @@ if not resizeImage:
     print("Not resizing")
     originalHeight = inputImage.shape[0]
     originalWidth = inputImage.shape[1]
-    inputImage = image_resize(inputImage, height=512)
+    inputImage = image_resize(
+        inputImage, height=512) if not shrink else image_resize(inputImage, height=shrinkPixels)
     height = inputImage.shape[0]
     width = inputImage.shape[1]
     # for circles
@@ -357,10 +363,18 @@ if not resizeImage:
 else:
     if not (inputImage.shape[0] == 512 and inputImage.shape[1] == 512):
         print("Image is not 512x512, resizing...")
-        inputImage = cv2.resize(
-            inputImage, (512, 512), interpolation=cv2.INTER_AREA)
-        originalHeight = height
-        originalWidth = width
+        if not shrink:
+            inputImage = cv2.resize(
+                inputImage, (512, 512), interpolation=cv2.INTER_AREA)
+            originalHeight = height
+            originalWidth = width
+        else:
+            inputImage = cv2.resize(
+                inputImage, (shrinkPixels, shrinkPixels), interpolation=cv2.INTER_AREA)
+            height = 256
+            width = 256
+            originalHeight = 512
+            originalWidth = 512
 
 
 # first generation
