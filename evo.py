@@ -65,16 +65,16 @@ def renderFromCircles(img, circles):
 
 # make a random circle with structure [coordinates, color, radius, transparency]
 def randomCircle():
-    return [(random.randint(0, height-1), random.randint(0,
-                                                         width-1)),  randomColor(), random.randint(radiusMin, radiusMax), random.uniform(minimumTransparency, maximumTransparency)]
+    return [(random.randint(0, width-1), random.randint(0,
+                                                        height-1)),  randomColor(), random.randint(radiusMin, radiusMax), random.uniform(minimumTransparency, maximumTransparency)]
 
 
 # make a random polygon with structure [[coordinates], color, transparency]
 def randomPolygon():
     points = []
     for i in range(verticesCount):
-        points.append([random.randint(0, height-1),
-                       random.randint(0, width-1)])
+        points.append([random.randint(0, width-1),
+                       random.randint(0, height-1)])
     return ([numpy.array(points, numpy.int32), randomColor(), random.uniform(minimumTransparency, maximumTransparency)])
 
 
@@ -98,8 +98,8 @@ def randomPolygonHeuristics():
     for i in range(verticesCount):
         # points.append([random.randint(0, height-1),
         #                random.randint(0, width-1)])
-        points.append([random.randint(hSectionStart, hSectionEnd),
-                       random.randint(wSectionStart, wSectionEnd)])
+        points.append([random.randint(wSectionStart, wSectionEnd),
+                       random.randint(hSectionStart, hSectionEnd)])
     return ([numpy.array(points, numpy.int32), randomColor(), random.uniform(minimumTransparency, maximumTransparency)])
 
 
@@ -177,6 +177,7 @@ def processShapes(shapes, height, width):
         if circleMode:
             shape[0] = (int(shape[0][0]*originalHeight/height),
                         int(shape[0][1]*originalWidth/width))
+            shape[2] = int(shape[2]*originalHeight/height)
         else:
             for point in shape[0]:
                 point[0] = int(point[0]*originalHeight/height)
