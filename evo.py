@@ -393,8 +393,9 @@ for i in range(iterationsGlobal):
     print("#", i, end=" ", sep='')
     population = population.newGeneration()
     img = population.currentHQImage
-    cv2.imwrite(imagePath.split('.')[0]+modeName +
-                "Result"+'.'+imagePath.split('.')[1], img)  # saving image each iteration
+    if i % 10 == 0:
+        cv2.imwrite(imagePath.split('.')[0]+modeName +
+                    "Result"+'.'+imagePath.split('.')[1], img)  # saving image each iteration
     if timelapseFlag:
         cv2.imwrite(timelapseDirPath+'/' +
                     str("{:05d}".format(currentGenId))+'.png', img)
