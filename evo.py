@@ -21,7 +21,7 @@ shrink = False
 shrinkPixels = 256
 
 # evo weights
-population_size = 512
+population_size = 512  # default, changes with argv
 iterationsGlobal = 5000  # default, changes with argv
 
 # shapes limits
@@ -349,6 +349,7 @@ if not resizeImage:
         inputImage, height=512) if not shrink else image_resize(inputImage, height=shrinkPixels)
     height = inputImage.shape[0]
     width = inputImage.shape[1]
+
     # for circles
     radiusMin = height//100
     radiusMax = height//4
@@ -375,6 +376,17 @@ else:
             width = 256
             originalHeight = 512
             originalWidth = 512
+    # below an image is 512x512 we are checking for --fast parameter
+    elif shrink:
+        inputImage = cv2.resize(
+            inputImage, (shrinkPixels, shrinkPixels), interpolation=cv2.INTER_AREA)
+        height = 256
+        width = 256
+        originalHeight = 512
+        originalWidth = 512
+    else:
+        originalHeight = 512
+        originalWidth = 512
 
 
 # first generation
@@ -386,6 +398,8 @@ population.emptyImage = emptyImage(h=height, w=width)
 population.currentHQImage = emptyImage(h=originalHeight, w=originalWidth)
 population.emptyHQImage = emptyImage(h=originalHeight, w=originalWidth)
 population.mutate(None)
+print("Algoritmhm works with a ", height, "x", width, " image", sep='')
+
 
 # iterating
 for i in range(iterationsGlobal):
