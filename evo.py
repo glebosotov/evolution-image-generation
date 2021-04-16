@@ -352,7 +352,7 @@ def collectArgs(imageName, brush, keepsize=False, iterations=5000, timelapse=Fal
 
 
 # handling Ctrl+C
-def interruptHandler(signum, frame):
+def customInterruptHandler(signum, frame):
     signal.signal(signal.SIGINT, originalHandler)
     if(Config.timelapseFlag):
         try:
@@ -372,13 +372,15 @@ def interruptHandler(signum, frame):
         except KeyboardInterrupt:
             print("Exiting now")
             sys.exit(1)
+    else:
+        sys.exit(1)
 
-    signal.signal(signal.SIGINT, interruptHandler)
+    signal.signal(signal.SIGINT, customInterruptHandler)
 
 
 # setting Ctrl+C handler
 originalHandler = signal.getsignal(signal.SIGINT)
-signal.signal(signal.SIGINT, interruptHandler)
+signal.signal(signal.SIGINT, customInterruptHandler)
 
 # collecting args
 argh.dispatch_command(collectArgs)
@@ -396,7 +398,7 @@ if Config.resizeImage:
 else:
     # keeping the size or setting up 512x512 image
     print("Keeping original dimensions")
-    Config.inputHeight, Config.inputWidth = Config.processingHeight, Config.processingWidth = inputImage.shape[
+    Config.fileHeight, Config.fileWidth = Config.processingHeight, Config.processingWidth = inputImage.shape[
         0], inputImage.shape[1]
     scaleShapeWeights()
 
@@ -416,6 +418,7 @@ population.outputImage = emptyImage(
 population.mutate()
 print("Algoritmhm works with a ", Config.processingWidth,
       "x", Config.processingHeight, " image", sep='')
+
 
 # iterating
 for i in range(Config.iterations):
