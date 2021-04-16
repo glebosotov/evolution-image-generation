@@ -248,9 +248,10 @@ def mse(imageA, imageB):
     return err
 
 
-def makeTimelapse():
-    os.system("ffmpeg -hide_banner -loglevel error -framerate 240 -i "+Config.timelapseDirPath +
-              "/%05d.png -c:v libx264 -pix_fmt yuv420p "+Config.imagePath.split('.')[0]+".mp4")
+def timelapseHandler(makeVideo=True):
+    if makeVideo:
+        os.system("ffmpeg -hide_banner -loglevel error -framerate 240 -i "+Config.timelapseDirPath +
+                  "/%05d.png -c:v libx264 -pix_fmt yuv420p "+Config.imagePath.split('.')[0]+".mp4")
     os.system("rm -r "+Config.timelapseDirPath)
 
 
@@ -361,8 +362,11 @@ def interruptHandler(signum, frame):
             if userInput == 'c':
                 pass
             elif userInput == 't':
-                makeTimelapse()
+                timelapseHandler()
+                sys.exit(1)
             elif userInput == 'q':
+                if Config.timelapseFlag:
+                    timelapseHandler(makeVideo=False)
                 sys.exit(1)
 
         except KeyboardInterrupt:
@@ -428,7 +432,7 @@ for i in range(Config.iterations):
 
 # making a timeplapse
 if Config.timelapseFlag:
-    makeTimelapse()
+    timelapseHandler()
 
 # time since start
 print("minutes elapsed", (time.time() - mainTime)//60)

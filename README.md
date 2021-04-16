@@ -39,14 +39,15 @@ $ sudo apt install ffmpeg
 
 ```shell
 usage: evo.py [-h] [--keepsize] [--iterations ITERATIONS] [--timelapse]
-              [--population POPULATION]
-              imageName {c,t,p,sp}
-              
+              [--population POPULATION] [--fast]
+              imageName {c,t,p,sp,s}
+
 Use either .jpg or .png images with resolution of 512x512
 
 positional arguments:
   imageName             filename of an image in current directory
-  {c,t,p,sp}            c – circle, t – triangle, p – random polygon, sp – smart polygon
+  {c,t,p,sp,s}          c – circle, t – triangle, p – random polygon, sp – smart
+                        polygon, s – square
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -57,6 +58,7 @@ optional arguments:
                         (default: False)
   --population POPULATION
                         optional (default: 512)
+  --fast, -f            faster, worse quality (default: False)
 ```
 
 ### Examples
@@ -66,9 +68,9 @@ python3 evo.py image.jpg c
 python3 evo.py image.png sp
 python3 evo.py image.jpg p --timelapse
 python3 evo.py pic.png c --population 256 --keepsize
-python3 evo.py image.jpg c -iteration 4000
+python3 evo.py image.jpg c --iteration 4000
 ```
 
 ### Notice
 
-The algorithm is not optimised for GPU or multiple CPU cores. With image resolution of approximately 256x256 it will take around 30 minutes. For 512x512 around 3-4 hours etc.
+The algorithm is not optimised for GPU or multiple CPU cores. With image resolution of  512x512 a couple of hours and with `-f` it will be 10 minutes.
